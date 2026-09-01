@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 from typing import List, Dict, Any
 import time
@@ -23,23 +23,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Find frontend directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+
 class AnalysisRequest(BaseModel):
     symbol: str
     user_profile: UserProfile
-
-# Serve frontend static files
-frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
-if not os.path.exists(frontend_path):
-    frontend_path = os.path.join(os.path.dirname(__file__), "frontend")
-if os.path.exists(frontend_path):
-    app.mount("/static", StaticFiles(directory=frontend_path), name="static")
-
-@app.get("/")
-def root():
-    index_path = os.path.join(frontend_path, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
-    return {"message": "Multi-Agent Financial Intelligence System"}
 
 @app.get("/api/analyze")
 @app.post("/api/analyze")
@@ -126,6 +116,25 @@ def health_check():
             "performance_logger": "active"
         }
     }
+
+# Serve static files
+if os.path.exists(FRONTEND_DIR):
+    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+@app.get("/{path:path}")
+async def serve_spa(path: str):
+    if path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="Not found")
+    
+    file_path = os.path.join(FRONTEND_DIR, path)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    
+    index_path = os.path.join(FRONTEND_DIR, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    
+    return {"message": "FinOracle API"}
 
 if __name__ == "__main__":
     import uvicorn
