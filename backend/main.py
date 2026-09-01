@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Any
 import time
@@ -23,7 +23,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Find frontend directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
@@ -117,24 +116,21 @@ def health_check():
         }
     }
 
-# Serve static files
-if os.path.exists(FRONTEND_DIR):
-    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+@app.get("/styles.css")
+async def serve_css():
+    return FileResponse(os.path.join(FRONTEND_DIR, "styles.css"), media_type="text/css")
 
-@app.get("/{path:path}")
-async def serve_spa(path: str):
-    if path.startswith("api/"):
-        raise HTTPException(status_code=404, detail="Not found")
-    
-    file_path = os.path.join(FRONTEND_DIR, path)
-    if os.path.isfile(file_path):
-        return FileResponse(file_path)
-    
-    index_path = os.path.join(FRONTEND_DIR, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
-    
-    return {"message": "FinOracle API"}
+@app.get("/app.js")
+async def serve_js():
+    return FileResponse(os.path.join(FRONTEND_DIR, "app.js"), media_type="application/javascript")
+
+@app.get("/particles.js")
+async def serve_particles():
+    return FileResponse(os.path.join(FRONTEND_DIR, "particles.js"), media_type="application/javascript")
+
+@app.get("/")
+async def serve_index():
+    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
 
 if __name__ == "__main__":
     import uvicorn
