@@ -1,9 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Any
 import time
 import uuid
+import os
 from orchestrator import run_agents_parallel
 from models.schemas import UserProfile, RiskTolerance
 from data.market_data import market_service
@@ -24,10 +27,19 @@ class AnalysisRequest(BaseModel):
     symbol: str
     user_profile: UserProfile
 
+# Serve frontend static files
+frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+if os.path.exists(frontend_path):
+    app.mount("/static", StaticFiles(directory=frontend_path), name="static")
+
 @app.get("/")
 def root():
+    index_path = os.path.join(frontend_path, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
     return {"message": "Multi-Agent Financial Intelligence System"}
 
+@app.get("/api/analyze")
 @app.post("/api/analyze")
 async def analyze_stock(request: AnalysisRequest):
     session_id = str(uuid.uuid4())[:8]
