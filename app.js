@@ -1,7 +1,7 @@
-// Auto-detect: use localhost for local dev, or the deployed backend URL
+// Auto-detect: use localhost for local dev, or the same server for deployed
 const API_BASE = window.location.hostname === 'localhost' 
     ? 'http://localhost:8000' 
-    : 'https://finoracle.up.railway.app'; // Change this to your Railway URL after deploy
+    : window.location.origin;
 
 // Tilt effect for cards
 document.querySelectorAll('[data-tilt]').forEach(card => {
