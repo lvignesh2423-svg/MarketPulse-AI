@@ -28,7 +28,7 @@ class AnalysisRequest(BaseModel):
     user_profile: UserProfile
 
 # Serve frontend static files
-frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+frontend_path = os.path.join(os.path.dirname(__file__), "frontend")
 if os.path.exists(frontend_path):
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
@@ -38,6 +38,16 @@ def root():
     if os.path.exists(index_path):
         return FileResponse(index_path)
     return {"message": "Multi-Agent Financial Intelligence System"}
+
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    file_path = os.path.join(frontend_path, full_path)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    index_path = os.path.join(frontend_path, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"message": "Not found"}
 
 @app.get("/api/analyze")
 @app.post("/api/analyze")
