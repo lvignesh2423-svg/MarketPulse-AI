@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinAI - 3D Financial Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Particle Background -->
+    <canvas id="particleCanvas"></canvas>
+    
+    <!-- Animated Grid Background -->
+    <div class="grid-bg"></div>
+    
+    <!-- Main Container -->
+    <div class="container-3d">
+        <!-- Floating orbs -->
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        
+        <!-- Header -->
+        <header class="header-3d">
+            <div class="logo-3d">
+                <div class="logo-cube">
+                    <div class="cube-face front">F</div>
+                    <div class="cube-face back">A</div>
+                    <div class="cube-face left">I</div>
+                    <div class="cube-face right">N</div>
+                    <div class="cube-face top">A</div>
+                    <div class="cube-face bottom">I</div>
+                </div>
+                <span class="logo-text-3d">FIN<span class="accent">AI</span></span>
+            </div>
+            <div class="header-controls">
+                <div class="search-3d">
+                    <input type="text" id="symbolInput" placeholder="ENTER SYMBOL..." value="RELIANCE">
+                    <div class="search-glow"></div>
+                </div>
+                <select id="riskProfile" class="select-3d">
+                    <option value="conservative">CONSERVATIVE</option>
+                    <option value="moderate" selected>MODERATE</option>
+                    <option value="aggressive">AGGRESSIVE</option>
+                </select>
+                <button class="btn-3d" onclick="analyzeStock()">
+                    <span class="btn-text">ANALYZE</span>
+                    <span class="btn-glow"></span>
+                    <div class="btn-particles"></div>
+                </button>
+            </div>
+        </header>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="loading-screen hidden">
+            <div class="loader-3d">
+                <div class="hexagon">
+                    <div class="hex-inner"></div>
+                </div>
+                <div class="loader-ring-3d"></div>
+                <div class="loader-ring-3d delay-1"></div>
+                <div class="loader-ring-3d delay-2"></div>
+            </div>
+            <p class="loading-text">INITIALIZING AGENTS<span class="dots">...</span></p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <main id="dashboard" class="dashboard-3d">
+            <!-- Stats Row -->
+            <div class="stats-3d">
+                <div class="stat-card-3d" data-tilt>
+                    <div class="stat-glow orange"></div>
+                    <div class="stat-icon-3d">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/>
+                            <polyline points="17,6 23,6 23,12"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label-3d">PORTFOLIO</span>
+                        <span class="stat-value-3d" id="portfolioValue">$67,250</span>
+                        <span class="stat-change-3d positive">+2.3%</span>
+                    </div>
+                    <div class="stat-chart">
+                        <svg viewBox="0 0 100 30" class="mini-chart">
+                            <polyline points="0,25 20,20 40,22 60,15 80,18 100,10" fill="none" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-card-3d" data-tilt>
+                    <div class="stat-glow green"></div>
+                    <div class="stat-icon-3d green">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label-3d">SIGNALS</span>
+                        <span class="stat-value-3d">12</span>
+                        <span class="stat-change-3d">3 NEW</span>
+                    </div>
+                </div>
+                <div class="stat-card-3d" data-tilt>
+                    <div class="stat-glow blue"></div>
+                    <div class="stat-icon-3d blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label-3d">ACCURACY</span>
+                        <span class="stat-value-3d">78%</span>
+                        <span class="stat-change-3d positive">+5%</span>
+                    </div>
+                </div>
+                <div class="stat-card-3d" data-tilt>
+                    <div class="stat-glow purple"></div>
+                    <div class="stat-icon-3d purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label-3d">SPEED</span>
+                        <span class="stat-value-3d">1.2s</span>
+                        <span class="stat-change-3d">AVG</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="grid-3d">
+                <!-- Analysis Panel -->
+                <div class="panel-3d analysis-panel-3d">
+                    <div class="panel-header-3d">
+                        <h2><span class="bracket">[</span> MARKET ANALYSIS <span class="bracket">]</span></h2>
+                        <div class="panel-line"></div>
+                    </div>
+                    <div id="results" class="panel-content hidden">
+                        <div id="marketInfo" class="market-data-3d"></div>
+                        <div id="recommendation" class="recommendation-3d"></div>
+                    </div>
+                    <div id="placeholder" class="placeholder-3d">
+                        <div class="placeholder-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 8v4M12 16h.01"/>
+                            </svg>
+                        </div>
+                        <p>ENTER SYMBOL AND CLICK ANALYZE</p>
+                    </div>
+                </div>
+
+                <!-- Agents Panel -->
+                <div class="panel-3d agents-panel-3d">
+                    <div class="panel-header-3d">
+                        <h2><span class="bracket">[</span> AGENT OUTPUTS <span class="bracket">]</span></h2>
+                        <div class="agents-status">
+                            <span class="status-dot active"></span>
+                            <span class="status-dot active"></span>
+                            <span class="status-dot active"></span>
+                        </div>
+                    </div>
+                    <div class="agents-container">
+                        <div class="agent-card-3d" id="technicalCard">
+                            <div class="agent-glow tech"></div>
+                            <div class="agent-header-3d">
+                                <div class="agent-avatar tech">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+                                    </svg>
+                                </div>
+                                <div class="agent-info">
+                                    <h3>TECHNICAL</h3>
+                                    <span class="agent-status-3d">ACTIVE</span>
+                                </div>
+                                <div class="agent-signal" id="techSignal">--</div>
+                            </div>
+                            <div id="technicalOutput" class="agent-output-3d"></div>
+                        </div>
+                        <div class="agent-card-3d" id="fundamentalCard">
+                            <div class="agent-glow fund"></div>
+                            <div class="agent-header-3d">
+                                <div class="agent-avatar fund">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                        <path d="M2 17l10 5 10-5"/>
+                                        <path d="M2 12l10 5 10-5"/>
+                                    </svg>
+                                </div>
+                                <div class="agent-info">
+                                    <h3>FUNDAMENTAL</h3>
+                                    <span class="agent-status-3d">ACTIVE</span>
+                                </div>
+                                <div class="agent-signal" id="fundSignal">--</div>
+                            </div>
+                            <div id="fundamentalOutput" class="agent-output-3d"></div>
+                        </div>
+                        <div class="agent-card-3d" id="sentimentCard">
+                            <div class="agent-glow sent"></div>
+                            <div class="agent-header-3d">
+                                <div class="agent-avatar sent">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                                        <line x1="9" y1="9" x2="9.01" y2="9"/>
+                                        <line x1="15" y1="9" x2="15.01" y2="9"/>
+                                    </svg>
+                                </div>
+                                <div class="agent-info">
+                                    <h3>SENTIMENT</h3>
+                                    <span class="agent-status-3d">ACTIVE</span>
+                                </div>
+                                <div class="agent-signal" id="sentSignal">--</div>
+                            </div>
+                            <div id="sentimentOutput" class="agent-output-3d"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section -->
+            <div class="bottom-3d">
+                <!-- Reasoning -->
+                <div class="panel-3d reasoning-panel-3d">
+                    <div class="panel-header-3d">
+                        <h2><span class="bracket">[</span> REASONING CHAIN <span class="bracket">]</span></h2>
+                    </div>
+                    <div id="reasoningChain" class="reasoning-3d"></div>
+                </div>
+
+                <!-- Portfolio -->
+                <div class="panel-3d portfolio-panel-3d">
+                    <div class="panel-header-3d">
+                        <h2><span class="bracket">[</span> PORTFOLIO <span class="bracket">]</span></h2>
+                    </div>
+                    <div id="portfolio" class="portfolio-3d"></div>
+                </div>
+
+                <!-- Watchlist -->
+                <div class="panel-3d watchlist-panel-3d">
+                    <div class="panel-header-3d">
+                        <h2><span class="bracket">[</span> WATCHLIST <span class="bracket">]</span></h2>
+                    </div>
+                    <div class="watchlist-3d">
+                        <div class="watch-item-3d" onclick="selectStock('RELIANCE')">
+                            <span class="watch-symbol">RELIANCE</span>
+                            <span class="watch-price">$1,307.50</span>
+                            <span class="watch-change positive">+2.39%</span>
+                            <div class="watch-bar" style="width: 70%"></div>
+                        </div>
+                        <div class="watch-item-3d" onclick="selectStock('TCS')">
+                            <span class="watch-symbol">TCS</span>
+                            <span class="watch-price">$3,456.20</span>
+                            <span class="watch-change negative">-0.85%</span>
+                            <div class="watch-bar negative" style="width: 45%"></div>
+                        </div>
+                        <div class="watch-item-3d" onclick="selectStock('INFY')">
+                            <span class="watch-symbol">INFY</span>
+                            <span class="watch-price">$1,523.80</span>
+                            <span class="watch-change positive">+1.24%</span>
+                            <div class="watch-bar" style="width: 60%"></div>
+                        </div>
+                        <div class="watch-item-3d" onclick="selectStock('HDFCBANK')">
+                            <span class="watch-symbol">HDFCBANK</span>
+                            <span class="watch-price">$1,678.90</span>
+                            <span class="watch-change positive">+0.42%</span>
+                            <div class="watch-bar" style="width: 55%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Panel -->
+                <div class="panel-3d performance-panel-3d">
+                    <div class="panel-header-3d">
+                        <h2><span class="bracket">[</span> PERFORMANCE METRICS <span class="bracket">]</span></h2>
+                        <div class="panel-line"></div>
+                    </div>
+                    <div id="performanceMetrics" class="performance-content">
+                        <div class="perf-item">
+                            <span class="perf-label">SIGNAL ACCURACY</span>
+                            <span class="perf-value" id="perfAccuracy">78.0%</span>
+                            <div class="perf-bar"><div class="perf-fill" style="width: 78%"></div></div>
+                        </div>
+                        <div class="perf-item">
+                            <span class="perf-label">AVG RESPONSE TIME</span>
+                            <span class="perf-value" id="perfLatency">1.2s</span>
+                            <div class="perf-bar"><div class="perf-fill blue" style="width: 60%"></div></div>
+                        </div>
+                        <div class="perf-item">
+                            <span class="perf-label">PORTFOLIO RISK</span>
+                            <span class="perf-value" id="perfRisk">0.50</span>
+                            <div class="perf-bar"><div class="perf-fill purple" style="width: 50%"></div></div>
+                        </div>
+                        <div class="perf-item">
+                            <span class="perf-label">TOTAL ANALYSES</span>
+                            <span class="perf-value" id="perfAnalyses">0</span>
+                        </div>
+                    </div>
+                    <!-- RAG Context -->
+                    <div class="rag-section">
+                        <h3><span class="bracket">[</span> REGULATORY CONTEXT <span class="bracket">]</span></h3>
+                        <div id="ragContext" class="rag-content">
+                            <p class="rag-placeholder">Run analysis to see regulatory context...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="particles.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
